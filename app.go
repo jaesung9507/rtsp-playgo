@@ -87,8 +87,8 @@ func (a *App) RTSP(url string) bool {
 		URL:              url,
 		DisableAudio:     true,
 		DialTimeout:      3 * time.Second,
-		ReadWriteTimeout: 3 * time.Second,
-		Debug:            false,
+		ReadWriteTimeout: 30 * time.Second,
+		Debug:            true,
 	})
 	if err != nil {
 		a.MsgBox(err.Error())
