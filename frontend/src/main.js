@@ -113,5 +113,8 @@ function appendFrameData(frame) {
 
 function onUpdateEnd() {
     isAppending = false;
+    if (elVideo.paused) {
+        elVideo.play().catch(e => console.warn("failed to resume play:", e));
+    }
     appendNextFrame();
 }
