@@ -5,4 +5,4 @@ export function CloseRTSP():Promise<void>;
 
 export function MsgBox(arg1:string):Promise<void>;
 
-export function RTSP(arg1:string):Promise<void>;
+export function RTSP(arg1:string):Promise<boolean>;

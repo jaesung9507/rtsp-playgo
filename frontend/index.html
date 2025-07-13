@@ -8,13 +8,11 @@
 <body>
 <div id="app">
     <div class="input-box">
-        <lable>ID: <input type="text" class="input" id="username"></lable>
-        <lable>PW: <input type="password" class="input" id="pw"></lable>
-        <lable>URL: <input type="text" class="input" id="url"></lable>
-        <button class="btn" onclick="OnPlayGo();">PlayGo</button>
+        <lable>URL: <input type="text" class="input" id="inputUrl"></lable>
+        <button class="btn" id="btnPlayGo" onclick="OnPlayGo();">PlayGo</button>
     </div>
     <div id="live" class="input-box">
-        <video id="remoteVideo" style="width: 85%" controls></video><br>
+        <video id="elVideo" style="width: 85%" controls></video><br>
     </div>
 </div>
 <script src="./src/main.js" type="module"></script>

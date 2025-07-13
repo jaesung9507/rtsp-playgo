@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/deepch/vdk/format/mp4f"
@@ -15,7 +14,6 @@ type App struct {
 	ctx        context.Context
 	rtspClient *rtspv2.RTSPClient
 	mp4Muxer   *mp4f.Muxer
-	m          sync.Mutex
 	close      chan bool
 }
 
@@ -61,6 +59,7 @@ func (a *App) initRTSP(client *rtspv2.RTSPClient, muxer *mp4f.Muxer) {
 func (a *App) rtspLoop() {
 	if a.rtspClient != nil && a.mp4Muxer != nil {
 		var timeLine = make(map[int8]time.Duration)
+		defer runtime.EventsEmit(a.ctx, "OnRTSPStop")
 		for {
 			select {
 			case <-a.close:
@@ -83,7 +82,7 @@ func (a *App) rtspLoop() {
 	}
 }
 
-func (a *App) RTSP(url string) {
+func (a *App) RTSP(url string) bool {
 	client, err := rtspv2.Dial(rtspv2.RTSPClientOptions{
 		URL:              url,
 		DisableAudio:     true,
@@ -93,16 +92,18 @@ func (a *App) RTSP(url string) {
 	})
 	if err != nil {
 		a.MsgBox(err.Error())
-		return
+		return false
 	}
 
 	muxer := mp4f.NewMuxer(nil)
 	if err = muxer.WriteHeader(client.CodecData); err != nil {
 		client.Close()
 		a.MsgBox(err.Error())
-		return
+		return false
 	}
 	meta, init := muxer.GetInit(client.CodecData)
 	a.initRTSP(client, muxer)
 	runtime.EventsEmit(a.ctx, "OnInit", meta, init)
+
+	return true
 }

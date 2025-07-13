@@ -8,34 +8,48 @@ let mediaSource, sourceBuffer;
 let frameQueue = [];
 let isAppending = false;
 
-function close() {
+const btnPlayGo = document.getElementById("btnPlayGo");
+const inputUrl = document.getElementById("inputUrl");
+const elVideo = document.getElementById("elVideo");
+elVideo.addEventListener("error", (e) => console.error("video error:", e));
+
+function resetVideo() {
     frameQueue = [];
     isAppending = false;
     mediaSource = null;
     sourceBuffer = null;
-    CloseRTSP();
+
+    if (elVideo.src) window.URL.revokeObjectURL(elVideo.src);
+
+    elVideo.pause();
+    elVideo.removeAttribute("src");
+    elVideo.currentTime = 0;
+    elVideo.load();
+
+    inputUrl.disabled = false;
+    btnPlayGo.innerText = "PlayGo";
 }
 
 window.OnPlayGo = function () {
-    close();
-    let username = document.getElementById("username").value;
-    let password = document.getElementById("pw").value;
-    let url = document.getElementById("url").value;
+    if (btnPlayGo.innerText === "Stop") {
+        CloseRTSP();
+    } else {
+        const url = inputUrl.value;
+        if (!url) {
+            return;
+        }
 
-    if (username && password) {
-        url = url.replace("rtsp://", `rtsp://${username}:${password}@`);
+        RTSP(url).then(ok => { if (ok) inputUrl.disabled = true; });
     }
-    RTSP(url);
 };
 
 EventsOn("OnInit", function (meta, init) {
-    const video = document.getElementById("remoteVideo");
+    btnPlayGo.innerText = "Stop";
     mediaSource = new MediaSource();
+    elVideo.src = window.URL.createObjectURL(mediaSource);
 
     mediaSource.addEventListener("sourceopen", function () {
-        if (mediaSource.sourceBuffers.length > 0) {
-            return;
-        }
+        if (mediaSource.sourceBuffers.length > 0) return;
 
         try {
             sourceBuffer = mediaSource.addSourceBuffer(`video/mp4; codecs="${meta}"`);
@@ -43,7 +57,7 @@ EventsOn("OnInit", function (meta, init) {
             console.error("failed to add source buffer:", e);
             return;
         }
-        
+
         sourceBuffer.mode = "segments";
         sourceBuffer.addEventListener("updateend", onUpdateEnd);
         sourceBuffer.addEventListener("error", (e) => console.error("source buffer error:", e));
@@ -51,14 +65,16 @@ EventsOn("OnInit", function (meta, init) {
         let initAppendDone = function() {
             sourceBuffer.removeEventListener("updateend", initAppendDone);
             EventsEmit("OnUpdateEnd");
-            video.play().catch(e => console.error("failed to play video:", e));
+            elVideo.play().catch(e => console.error("failed to play video:", e));
         };
         sourceBuffer.addEventListener("updateend", initAppendDone);
         pushBuffer(init);
     });
+});
 
-    video.src = window.URL.createObjectURL(mediaSource);
-    video.addEventListener("error", (e) => console.error("video error:", e));
+EventsOn("OnRTSPStop", () => {
+    console.log("OnRTSPStop");
+    resetVideo();
 });
 
 EventsOn("OnFrame", function (frame) {
