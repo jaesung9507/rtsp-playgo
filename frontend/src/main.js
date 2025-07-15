@@ -1,7 +1,7 @@
 import './style.css';
 import './app.css';
 
-import {RTSP, CloseRTSP} from '../wailsjs/go/main/App';
+import {PlayStream, CloseStream} from '../wailsjs/go/main/App';
 import {EventsOn, EventsEmit} from '../wailsjs/runtime/runtime';
 
 let mediaSource, sourceBuffer;
@@ -32,14 +32,14 @@ function resetVideo() {
 
 window.OnPlayGo = function () {
     if (btnPlayGo.innerText === "Stop") {
-        CloseRTSP();
+        CloseStream();
     } else {
         const url = inputUrl.value;
         if (!url) {
             return;
         }
 
-        RTSP(url).then(ok => { if (ok) inputUrl.disabled = true; });
+        PlayStream(url).then(ok => { if (ok) inputUrl.disabled = true; });
     }
 };
 
@@ -72,8 +72,8 @@ EventsOn("OnInit", function (meta, init) {
     });
 });
 
-EventsOn("OnRTSPStop", () => {
-    console.log("OnRTSPStop");
+EventsOn("OnStreamStop", () => {
+    console.log("OnStreamStop");
     resetVideo();
 });
 
