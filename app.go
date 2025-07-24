@@ -65,6 +65,7 @@ func (a *App) streamLoop() {
 			case <-a.streamClient.CloseCh():
 				return
 			case packetAV := <-a.streamClient.PacketQueue():
+				packetAV.CompositionTime = 0
 				ready, buf, _ := a.mp4Muxer.WritePacket(*packetAV, false)
 				if ready {
 					runtime.EventsEmit(a.ctx, "OnFrame", buf)
