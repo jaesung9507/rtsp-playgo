@@ -11,7 +11,12 @@ let isAppending = false;
 const btnPlayGo = document.getElementById("btnPlayGo");
 const inputUrl = document.getElementById("inputUrl");
 const elVideo = document.getElementById("elVideo");
-elVideo.addEventListener("error", (e) => console.error("video error:", e));
+elVideo.addEventListener("error", (e) => {
+    const error = elVideo.error;
+    if (error) {
+        console.error(`video error: code=${error.code}, message=${error.message}`, e);
+    }
+});
 
 function resetVideo() {
     frameQueue = [];
