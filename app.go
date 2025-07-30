@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"rtsp-playgo/stream"
+	rt "runtime"
 
 	"github.com/deepch/vdk/format/mp4f"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -65,7 +66,12 @@ func (a *App) streamLoop() {
 			case <-a.streamClient.CloseCh():
 				return
 			case packetAV := <-a.streamClient.PacketQueue():
-				packetAV.CompositionTime = 0
+				switch rt.GOOS {
+				case "darwin":
+				default:
+					packetAV.CompositionTime = 0
+				}
+
 				ready, buf, _ := a.mp4Muxer.WritePacket(*packetAV, false)
 				if ready {
 					runtime.EventsEmit(a.ctx, "OnFrame", buf)
