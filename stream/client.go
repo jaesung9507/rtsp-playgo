@@ -3,6 +3,9 @@ package stream
 import (
 	"fmt"
 	"net/url"
+	"path"
+	"path/filepath"
+	"rtsp-playgo/stream/flv"
 	"rtsp-playgo/stream/rtmp"
 	"rtsp-playgo/stream/rtsp"
 
@@ -29,6 +32,14 @@ func Dial(streamUrl string) (Client, error) {
 		client = rtsp.New(streamUrl)
 	case "rtmp", "rtmps":
 		client = rtmp.New(streamUrl)
+	case "http", "https":
+		ext := filepath.Ext(path.Base(parsedUrl.Path))
+		switch ext {
+		case ".flv":
+			client = flv.New(streamUrl)
+		default:
+			return nil, fmt.Errorf("unsupported extension: %s", ext)
+		}
 	default:
 		return nil, fmt.Errorf("unsupported protocol: %s", parsedUrl.Scheme)
 	}
