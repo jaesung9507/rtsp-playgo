@@ -31,7 +31,7 @@ func Dial(streamUrl string) (Client, error) {
 	case "rtsp", "rtsps":
 		client = rtsp.New(streamUrl)
 	case "rtmp", "rtmps":
-		client = rtmp.New(streamUrl)
+		client = rtmp.New(parsedUrl)
 	case "http", "https":
 		ext := filepath.Ext(path.Base(parsedUrl.Path))
 		switch ext {

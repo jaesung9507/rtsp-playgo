@@ -1,31 +1,61 @@
 package rtmp
 
 import (
+	"crypto/tls"
+	"net"
+	"net/url"
+
 	"github.com/deepch/vdk/av"
 	"github.com/deepch/vdk/format/rtmp"
 )
 
+const (
+	DefaultRtmpPort  = ":1935"
+	DefaultRtmpsPort = ":443"
+)
+
 type RTMPClient struct {
-	url         string
+	url         *url.URL
 	conn        *rtmp.Conn
 	signal      chan interface{}
 	packetQueue chan *av.Packet
 }
 
-func New(url string) *RTMPClient {
+func New(parsedUrl *url.URL) *RTMPClient {
 	return &RTMPClient{
-		url:         url,
+		url:         parsedUrl,
 		signal:      make(chan interface{}),
 		packetQueue: make(chan *av.Packet),
 	}
 }
 
 func (r *RTMPClient) Dial() error {
-	conn, err := rtmp.Dial(r.url)
+	if _, _, err := net.SplitHostPort(r.url.Host); err != nil {
+		if r.url.Scheme == "rtmps" {
+			r.url.Host += DefaultRtmpsPort
+		} else {
+			r.url.Host += DefaultRtmpPort
+		}
+	}
+
+	conn, err := net.Dial("tcp", r.url.Host)
 	if err != nil {
 		return err
 	}
-	r.conn = conn
+
+	if r.url.Scheme == "rtmps" {
+		tlsConn := tls.Client(conn, &tls.Config{
+			InsecureSkipVerify: true,
+		})
+
+		if err = tlsConn.Handshake(); err != nil {
+			return err
+		}
+		conn = tlsConn
+	}
+
+	r.conn = rtmp.NewConn(conn)
+	r.conn.URL = r.url
 	return nil
 }
 
