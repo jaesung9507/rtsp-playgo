@@ -1,24 +1,35 @@
 package rtsp
 
 import (
+	"net"
+	"net/url"
 	"time"
 
 	"github.com/deepch/vdk/av"
 	"github.com/deepch/vdk/format/rtspv2"
 )
 
+const (
+	DefaultRtspsPort = ":322"
+)
+
 type RTSPClient struct {
-	url    string
+	url    *url.URL
 	client *rtspv2.RTSPClient
 }
 
-func New(url string) *RTSPClient {
-	return &RTSPClient{url: url}
+func New(parsedUrl *url.URL) *RTSPClient {
+	if parsedUrl.Scheme == "rtsps" {
+		if _, _, err := net.SplitHostPort(parsedUrl.Host); err != nil {
+			parsedUrl.Host += DefaultRtspsPort
+		}
+	}
+	return &RTSPClient{url: parsedUrl}
 }
 
 func (r *RTSPClient) Dial() error {
 	client, err := rtspv2.Dial(rtspv2.RTSPClientOptions{
-		URL:                r.url,
+		URL:                r.url.String(),
 		DisableAudio:       false,
 		DialTimeout:        3 * time.Second,
 		ReadWriteTimeout:   30 * time.Second,
