@@ -2,12 +2,14 @@ package http
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"path"
 	"path/filepath"
+	"strconv"
 
 	"github.com/deepch/vdk/av"
 	"github.com/deepch/vdk/format/flv"
@@ -20,6 +22,7 @@ type HTTPClient struct {
 	demuxer     av.Demuxer
 	signal      chan any
 	packetQueue chan *av.Packet
+	isLive      bool
 }
 
 func New(parsedUrl *url.URL) *HTTPClient {
@@ -59,6 +62,11 @@ func (h *HTTPClient) Dial() error {
 		return err
 	}
 
+	contentLength, _ := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	if contentLength <= 0 {
+		h.isLive = true
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
 		return fmt.Errorf("status code: %s", resp.Status)
@@ -82,7 +90,9 @@ func (h *HTTPClient) CodecData() ([]av.CodecData, error) {
 			for {
 				packet, err := h.demuxer.ReadPacket()
 				if err != nil {
-					h.signal <- err
+					if h.isLive || !errors.Is(err, io.EOF) {
+						h.signal <- err
+					}
 					return
 				}
 				h.packetQueue <- &packet
