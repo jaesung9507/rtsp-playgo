@@ -67,8 +67,7 @@ func (a *App) streamLoop() {
 				return
 			case packetAV := <-a.streamClient.PacketQueue():
 				switch rt.GOOS {
-				case "darwin":
-				default:
+				case "linux":
 					packetAV.CompositionTime = 0
 				}
 
