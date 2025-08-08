@@ -3,9 +3,10 @@ package stream
 import (
 	"fmt"
 	"net/url"
-	"rtsp-playgo/stream/http"
-	"rtsp-playgo/stream/rtmp"
-	"rtsp-playgo/stream/rtsp"
+
+	"github.com/jaesung9507/playgo/stream/http"
+	"github.com/jaesung9507/playgo/stream/rtmp"
+	"github.com/jaesung9507/playgo/stream/rtsp"
 
 	"github.com/deepch/vdk/av"
 )

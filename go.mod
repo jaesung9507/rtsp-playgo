@@ -1,4 +1,4 @@
-module rtsp-playgo
+module github.com/jaesung9507/playgo
 
 go 1.18
 

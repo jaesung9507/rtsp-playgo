@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"rtsp-playgo/stream"
 	rt "runtime"
+
+	"github.com/jaesung9507/playgo/stream"
 
 	"github.com/deepch/vdk/format/mp4f"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -33,7 +34,7 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) MsgBox(msg string) {
 	_, _ = runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
-		Title:   "RTSP PlayGo",
+		Title:   "PlayGo",
 		Message: msg,
 		Buttons: []string{"OK"},
 	})
